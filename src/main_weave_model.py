@@ -9,12 +9,9 @@ import json
 from openai import OpenAI
 import streamlit as st
 
-# 1. Initialize Weave
-# This will begin to automatically track calls to many common LLM providers and orchestrators.
-# In this case, all calls to `client.chat.completions.create` will be traced.
 import weave
 
-weave_client = weave.init("weave-chatbot-tutorial-b")
+weave.init("weave-chatbot-tutorial-b")
 
 
 class ChatbotModel(weave.Model):
@@ -32,7 +29,7 @@ class ChatbotModel(weave.Model):
     """
 
     @weave.op
-    def invoke(self, user_message, messages):
+    def handle_user_input(self, user_message, messages):
         # Add system prompt and user message to the messages list
         messages = [
             {"role": "system", "content": self.system_prompt},
@@ -50,17 +47,7 @@ class ChatbotModel(weave.Model):
         return json.loads(response.choices[0].message.content)
 
 
-def handle_feedback(call_id, feedback):
-    print(f"Feedback: {feedback} for call_id: {call_id}")
-    weave_client.get_call(call_id).feedback.add_reaction("👍" if feedback else "👎")
-    for i, message in enumerate(st.session_state.messages):
-        if "call_id" in message and message["call_id"] == call_id:
-            st.session_state.messages[i]["feedback"] = feedback
-            break
-
-
 def main():
-    model = ChatbotModel()
     # Initialize the Streamlit session
     if "messages" not in st.session_state:
         st.session_state.messages = []
@@ -72,27 +59,9 @@ def main():
     for message in st.session_state.messages:
         with st.chat_message(message["role"]):
             st.markdown(message["content"])
-            if "call_id" in message:
-                st.button(
-                    "👍",
-                    key=f"positive-{message['call_id']}",
-                    on_click=handle_feedback,
-                    args=[message["call_id"], True],
-                    type="primary"
-                    if "feedback" in message and message["feedback"] == True
-                    else "secondary",
-                )
-                st.button(
-                    "👎",
-                    key=f"negative-{message['call_id']}",
-                    on_click=handle_feedback,
-                    args=[message["call_id"], False],
-                    type="primary"
-                    if "feedback" in message and message["feedback"] == False
-                    else "secondary",
-                )
 
     # Wait for user input
+    model = ChatbotModel()
     if user_message := st.chat_input("What is up?"):
         # Display the user input
         with st.chat_message("user"):
@@ -100,30 +69,18 @@ def main():
 
         # Process the user input
         with weave.attributes(dict(env="demo")):
-            res, call = model.invoke.call(
+            res = model.handle_user_input(
                 user_message,
                 messages=[
                     {"role": m["role"], "content": m["content"]}
                     for m in st.session_state.messages
                 ],
             )
-            response = res.get("response")
+        response = res.get("response")
 
         # Display the response
         with st.chat_message("assistant"):
             st.markdown(response)
-            st.button(
-                "👍",
-                key=f"positive-{call.id}",
-                on_click=handle_feedback,
-                args=[call.id, True],
-            )
-            st.button(
-                "👎",
-                key=f"negative-{call.id}",
-                on_click=handle_feedback,
-                args=[call.id, False],
-            )
 
         # Add the user message to the session state
         st.session_state.messages.append({"role": "user", "content": user_message})
@@ -133,8 +90,6 @@ def main():
             {
                 "role": "assistant",
                 "content": response,
-                "call_id": call.id,
-                "feedback": None,
             }
         )
 
