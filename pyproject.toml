@@ -1,0 +1,16 @@
+[project]
+name = "weave-chatbot-tutorial"
+version = "0.1.0"
+description = "Demonstration of Chatbot Development with Weave"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "openai>=1.44.0",
+    "ruff>=0.6.4",
+    "streamlit>=1.38.0",
+    "weave>=0.51.2",
+]
+
+[tool.ruff.lint]
+select = ["E", "F"]
+ignore = ["F401", "E501"]
