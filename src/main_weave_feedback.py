@@ -14,7 +14,7 @@ import streamlit as st
 # In this case, all calls to `client.chat.completions.create` will be traced.
 import weave
 
-weave_client = weave.init("weave-chatbot-tutorial-b")
+weave_client = weave.init("weave-chatbot-tutorial-c")
 
 
 class ChatbotModel(weave.Model):

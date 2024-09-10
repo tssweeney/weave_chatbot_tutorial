@@ -11,7 +11,7 @@ import streamlit as st
 
 import weave
 
-weave.init("weave-chatbot-tutorial-b")
+weave.init("weave-chatbot-tutorial-c")
 
 
 model_name: str = "gpt-3.5-turbo"

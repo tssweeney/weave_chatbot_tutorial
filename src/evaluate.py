@@ -4,7 +4,7 @@ import asyncio
 
 from main import ChatbotModel
 
-weave.init("weave-chatbot-tutorial-b")
+weave.init("weave-chatbot-tutorial-c")
 
 
 def scorer(model_output, user_message):
